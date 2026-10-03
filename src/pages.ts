@@ -18,8 +18,9 @@ function ago(t: number): string {
   return `${Math.floor(s / 86400)}d ago`;
 }
 
-const FONTS =
-  'https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;800;900&family=JetBrains+Mono:wght@400;500&display=swap';
+// Self-hosted variable fonts (SIL OFL): Inter Tight and JetBrains Mono, latin subset.
+const FONT_FACES = `@font-face{font-family:"Inter Tight";font-style:normal;font-weight:100 900;font-display:swap;src:url(/fonts/InterTight.woff2) format("woff2")}
+@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:100 800;font-display:swap;src:url(/fonts/JetBrainsMono.woff2) format("woff2")}`;
 
 const STYLE = `
 :root{color-scheme:light;--bg:#f2f0eb;--paper:#f7f6f2;--ink:#0e0e0d;--ink-2:#3a3936;--muted:#77756f;--line:#d8d5cd;--line-2:#e6e3dc;
@@ -46,7 +47,8 @@ a{color:inherit}
 .arrow{width:14px;height:14px;flex:none}
 
 /* hero */
-.hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr) 88px;gap:24px;padding:40px 0 36px}
+.hero{display:grid;grid-template-columns:minmax(0,.93fr) minmax(0,1.07fr);gap:clamp(20px,2vw,28px);padding:16px 0 26px;align-items:start}
+.hero>div:first-child{padding-top:26px}
 .display{font-family:var(--sans);font-weight:900;letter-spacing:-.045em;word-spacing:.04em;line-height:.88;margin:0;font-size:clamp(52px,6.9vw,116px)}
 .display span{white-space:nowrap}
 .lede{font-size:clamp(20px,1.9vw,25px);color:var(--ink-2);margin:20px 0 28px;letter-spacing:-.01em}
@@ -74,8 +76,9 @@ label.q{display:block;font-size:16px;color:var(--ink-2);margin:24px 0 10px}
 .ack{display:flex;gap:12px;align-items:flex-start;margin-top:16px;font-size:14px;color:var(--ink-2);line-height:1.45}
 .ack input{margin-top:3px;accent-color:var(--accent);width:16px;height:16px;flex:none}
 .err{color:var(--bad);font-size:14px;min-height:20px;margin:10px 0 0}
-.art{position:relative;display:grid;place-items:start center;min-height:420px}
-.art svg{width:100%;max-width:560px;height:auto}
+.tiles{display:grid;grid-template-columns:353fr 376fr;gap:10px}
+.tiles img{display:block;width:100%;height:auto;background:var(--feed)}
+.tiles-note{grid-column:1/-1;text-align:right;font-size:10px;margin-top:2px}
 .rail{border-left:1px solid var(--line);padding-left:16px;display:flex;flex-direction:column;justify-content:space-between;gap:24px}
 .rail .mono{font-size:10.5px;line-height:1.5}
 
@@ -89,15 +92,18 @@ label.q{display:block;font-size:16px;color:var(--ink-2);margin:24px 0 10px}
 @keyframes pulse{50%{opacity:.35}}
 
 .obs{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) 88px;gap:20px;padding-bottom:20px}
-.feed{position:relative;background:var(--feed);color:#fff;aspect-ratio:16/9;overflow:hidden;display:grid;place-items:center;
+.feed{position:relative;background:var(--feed);color:#fff;aspect-ratio:863/304;overflow:hidden;display:grid;place-items:center;
  background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:48px 48px}
+.feed.game{background:var(--feed) url(/img/gaming-plain.jpg) center/cover}
+.feed.game::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,9,.55),rgba(10,10,9,.78))}
+.feed.photo{aspect-ratio:auto;display:block;background:transparent;align-self:start}.feed.photo img{display:block;width:100%;height:auto}.feed.photo .mono{display:block;margin-top:10px;font-size:10.5px;text-align:left}.feed.photo::after{display:none}
 .feed::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 70% 20%,rgba(240,90,20,.18),transparent 60%);pointer-events:none}
 .tag{position:absolute;top:16px;left:16px;display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.72);padding:8px 14px;font-family:var(--mono);font-size:13px;letter-spacing:.04em;z-index:1}
 .tag .dot{width:9px;height:9px}
 .board{text-align:center;position:relative;z-index:1;width:100%;padding:0 24px}
 .board .names{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:20px;font-size:clamp(14px,1.6vw,20px);font-weight:600}
 .board .names span:first-child{text-align:right}.board .names span:last-child{text-align:left}
-.board .nums{font-weight:900;letter-spacing:-.04em;font-size:clamp(72px,11vw,168px);line-height:1;font-variant-numeric:tabular-nums}
+.board .nums{font-weight:900;letter-spacing:-.04em;font-size:clamp(64px,9vw,136px);line-height:1;font-variant-numeric:tabular-nums}
 .board .nums i{font-style:normal;font-weight:300;color:rgba(255,255,255,.3);padding:0 .1em;position:relative;top:-.06em}
 .board .sub{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:rgba(255,255,255,.6);text-transform:uppercase;margin-top:10px}
 .panel{border-top:1px solid var(--line);padding-top:16px;display:flex;flex-direction:column}
@@ -112,11 +118,11 @@ label.q{display:block;font-size:16px;color:var(--ink-2);margin:24px 0 10px}
 .note{font-size:13px;color:var(--muted);margin:12px 0 0}
 
 /* lists */
-.records{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--line)}
-.rec{display:grid;grid-template-columns:132px 1fr auto;gap:20px;align-items:center;padding:14px 20px 14px 0;text-decoration:none}
+.records{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line)}
+.rec{display:grid;grid-template-columns:124px 1fr auto;gap:18px;align-items:center;padding:14px 20px 14px 0;text-decoration:none}
 .records .rec+.rec{border-left:1px solid var(--line);padding-left:20px}
 .rec:hover .t{text-decoration:underline}
-.thumb{height:72px;background:var(--feed);color:#fff;display:grid;place-items:center;font-weight:900;font-size:26px;letter-spacing:-.03em;position:relative;overflow:hidden;
+.thumb{height:72px;border-radius:3px;background-size:cover!important;background-position:center!important;background:var(--feed);color:#fff;display:grid;place-items:center;font-weight:900;font-size:26px;letter-spacing:-.03em;position:relative;overflow:hidden;
  background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:14px 14px}
 .thumb.empty{color:rgba(255,255,255,.5);font:500 11px var(--mono);letter-spacing:.14em}
 .rec .t{font-weight:600;font-size:17px}.rec .s{color:var(--ink-2);font-size:15px}.rec .m{color:var(--muted);font-size:14px;display:flex;align-items:center;gap:8px}
@@ -148,15 +154,14 @@ textarea.box{min-height:96px;resize:vertical}
 pre{background:var(--feed);color:#e9e6df;padding:20px;overflow:auto;font:13px/1.6 var(--mono)}
 footer{border-top:1px solid var(--line);padding:22px 0 40px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 
-@media (prefers-reduced-motion:no-preference){.orbit{transform-origin:280px 250px;animation:spin 38s linear infinite}.orbit.b{animation-duration:54s;animation-direction:reverse}}
-@keyframes spin{to{transform:rotate(360deg)}}
-@media (max-width:1100px){.hero,.obs{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.rail{display:none}.records{grid-template-columns:1fr}.records .rec+.rec{border-left:0;padding-left:0;border-top:1px solid var(--line)}}
+@media (max-width:1100px){.hero{grid-template-columns:minmax(0,1fr)}.obs{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.rail{display:none}.records{grid-template-columns:1fr 1fr}.records .rec:nth-child(3){border-left:0;padding-left:0}.records .rec+.rec{border-left:0;padding-left:0;border-top:1px solid var(--line)}}
 @media (max-width:760px){
  .nav{grid-template-columns:1fr auto;height:auto;padding:14px 0;row-gap:10px}.links{grid-column:1/-1;grid-row:2;gap:22px}.cta .btn{padding:10px 16px;font-size:14px}
- .hero,.obs,.grid2{grid-template-columns:minmax(0,1fr)}.art{min-height:0;order:-1;max-width:340px;margin:0 auto}
+ .hero,.obs,.grid2{grid-template-columns:minmax(0,1fr)}.records{grid-template-columns:1fr}.records .rec+.rec{border-left:0;padding-left:0;border-top:1px solid var(--line)}.tiles{gap:6px}
  .setup{grid-template-columns:1fr 1fr}.setup>div:last-child{grid-column:1/-1}
  .rec,.rows .rec{grid-template-columns:92px 1fr auto;gap:14px}.thumb{height:56px;font-size:20px}
- .feed{aspect-ratio:auto;min-height:240px;padding-top:44px}
+ .feed:not(.photo){aspect-ratio:auto;min-height:240px;padding-top:44px}
+ .display span{white-space:normal}
  .field input{font-size:16px}.go{width:60px}.log li{grid-template-columns:84px 1fr}
 }
 `;
@@ -167,39 +172,14 @@ const ARROW_R = `<svg class="arrow" viewBox="0 0 16 16" fill="none" stroke="curr
 const LOGO = `<svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#0e0e0d"/>
 <g stroke="#f2f0eb" stroke-width="1.5" stroke-linecap="round" fill="none"><path d="M16.00 11.00 L29.72 12.32"/><path d="M20.33 13.50 L26.04 26.04"/><path d="M20.33 18.50 L12.32 29.72"/><path d="M16.00 21.00 L2.28 19.68"/><path d="M11.67 18.50 L5.96 5.96"/><path d="M11.67 13.50 L19.68 2.28"/></g></svg>`;
 
-/** The hero object: a brushed-steel orrery around an amber sphere, drawn inline. */
-const ORRERY = `<svg viewBox="0 0 560 520" role="img" aria-label="An orrery: metal rings orbiting an amber sphere">
-<defs>
- <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4f3f0"/><stop offset=".3" stop-color="#a9a7a2"/><stop offset=".5" stop-color="#eeede9"/><stop offset=".75" stop-color="#8d8b86"/><stop offset="1" stop-color="#dcdad5"/></linearGradient>
- <linearGradient id="steel2" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9e8e4"/><stop offset=".4" stop-color="#7f7d78"/><stop offset=".6" stop-color="#d9d7d2"/><stop offset="1" stop-color="#9a9893"/></linearGradient>
- <radialGradient id="amber" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#ffd9a8"/><stop offset=".25" stop-color="#f5913b"/><stop offset=".6" stop-color="#c2500f"/><stop offset="1" stop-color="#5e2104"/></radialGradient>
- <radialGradient id="ball" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff"/><stop offset=".4" stop-color="#a6a4a0"/><stop offset="1" stop-color="#3d3c39"/></radialGradient>
- <radialGradient id="shadow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#000" stop-opacity=".22"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
- <linearGradient id="base" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9b9994"/><stop offset=".35" stop-color="#f1f0ec"/><stop offset=".7" stop-color="#b3b1ac"/><stop offset="1" stop-color="#7c7a75"/></linearGradient>
-</defs>
-<ellipse cx="290" cy="478" rx="230" ry="26" fill="url(#shadow)"/>
-<path d="M190 452 Q190 474 280 476 Q370 474 370 452 L370 440 L190 440 Z" fill="url(#base)"/>
-<ellipse cx="280" cy="440" rx="90" ry="16" fill="#e7e6e2" stroke="#b9b7b2"/>
-<rect x="268" y="400" width="24" height="42" fill="url(#base)"/>
-<line x1="280" y1="40" x2="280" y2="410" stroke="#8c8a85" stroke-width="3"/>
-<g class="orbit b"><ellipse cx="280" cy="250" rx="236" ry="96" fill="none" stroke="url(#steel2)" stroke-width="16" transform="rotate(-28 280 250)"/></g>
-<ellipse cx="280" cy="250" rx="200" ry="200" fill="none" stroke="url(#steel)" stroke-width="22" transform="rotate(18 280 250) scale(1 1)" opacity=".95"/>
-<line x1="80" y1="250" x2="480" y2="250" stroke="#8c8a85" stroke-width="2"/>
-<circle cx="280" cy="250" r="70" fill="url(#amber)"/>
-<ellipse cx="258" cy="222" rx="26" ry="15" fill="#fff" opacity=".45" transform="rotate(-30 258 222)"/>
-<g class="orbit"><ellipse cx="280" cy="250" rx="250" ry="70" fill="none" stroke="url(#steel)" stroke-width="12" transform="rotate(14 280 250)"/>
-<circle cx="522" cy="310" r="13" fill="url(#ball)"/><circle cx="38" cy="190" r="13" fill="url(#ball)"/></g>
-<circle cx="280" cy="60" r="12" fill="url(#ball)"/><circle cx="280" cy="440" r="0"/><circle cx="280" cy="362" r="12" fill="url(#ball)"/>
-</svg>`;
-
 type Nav = 'observe' | 'records' | 'developers' | null;
 
 function layout(title: string, body: string, nav: Nav): string {
   const link = (href: string, label: string, key: Nav) => `<a href="${href}"${nav === key ? ' class="on" aria-current="page"' : ''}>${label}</a>`;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(title)}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="${FONTS}"><style>${STYLE}</style></head><body>
+<link rel="preload" href="/fonts/InterTight.woff2" as="font" type="font/woff2" crossorigin>
+<style>${FONT_FACES}${STYLE}</style></head><body>
 <div class="wrap">
 <header class="nav"><a class="brand" href="/">${LOGO}WITNESS</a>
 <nav class="links">${link('/', 'Observe', 'observe')}${link('/records', 'Records', 'records')}${link('/developers', 'Developers', 'developers')}</nav>
@@ -243,13 +223,13 @@ function recordRow(r: WitnessRecord): string {
   const p = r.payload;
   const last = p.matches.at(-1)!;
   const score = p.format === 'bo3' && p.winner !== null ? headline(r).replace(/^.* wins /, '').replace('.', '') : last.scores.join('–');
-  return `<a class="rec" href="/r/${esc(r.id)}"><div class="thumb">${esc(score)}</div>
+  return `<a class="rec" href="/r/${esc(r.id)}"><div class="thumb" style="background:url(/img/thumb-gaming.jpg)"><span style="text-shadow:0 1px 8px #000">${esc(score)}</span></div>
 <div><div class="t">${esc(p.participants[0])} vs ${esc(p.participants[1])}</div><div class="s">${p.matches.map((m) => m.scores.join('–')).join(' · ')}</div>
 <div class="m"><span class="dot d-${r.status}"></span>${esc(STATUS_LABEL[r.status])} · ${esc(ago(p.issuedAt))}</div></div>${ARROW_R}</a>`;
 }
 
 function feedPanel(s: Session, scores: [number, number] | null, sub: string): string {
-  return `<div class="feed"><div class="tag"><span class="dot${s.status === 'watching' ? ' live' : ''}"></span><span id="tag">${esc(s.participants[0])} vs ${esc(s.participants[1])} · ${s.status === 'watching' ? 'Live feed' : 'Ended'}</span></div>
+  return `<div class="feed game"><div class="tag"><span class="dot${s.status === 'watching' ? ' live' : ''}"></span><span id="tag">${esc(s.participants[0])} vs ${esc(s.participants[1])} · ${s.status === 'watching' ? 'Live feed' : 'Ended'}</span></div>
 <div class="board"><div class="names"><span>${esc(s.participants[0])}</span><span></span><span>${esc(s.participants[1])}</span></div>
 <div class="nums" id="score">${scores ? `${scores[0]}<i>:</i>${scores[1]}` : '–<i>:</i>–'}</div><div class="sub" id="match">${esc(sub)}</div></div></div>`;
 }
@@ -260,18 +240,44 @@ export type HomeData = {
   records: WitnessRecord[];
 };
 
+const EXAMPLES = [
+  { thumb: 'thumb-soccer', title: 'School soccer', line: '3 – 2', drop: 2 },
+  { thumb: 'thumb-concert', title: 'Concert stream', line: 'Event timeline', drop: 3 },
+  { thumb: 'thumb-gaming', title: 'Gaming match', line: '13 – 9', drop: 1 },
+  { thumb: 'thumb-station', title: 'Station feed', line: 'Arrival', drop: 4 },
+];
+
+function exampleRow(e: (typeof EXAMPLES)[number]): string {
+  return `<div class="rec"><div class="thumb" style="background:url(/img/${e.thumb}.jpg)"></div>
+<div><div class="t">${esc(e.title)}</div><div class="s">${esc(e.line)}</div><div class="m"><span class="dot" style="background:var(--line)"></span>Example</div></div><span></span></div>`;
+}
+
 export function homePage({ devMode, live, records }: HomeData): string {
-  const preview = live
-    ? `<div class="sec-head"><span class="mono">01 / Live observation</span><span class="watching"><span class="dot${live.session.status === 'watching' ? ' live' : ` d-${live.session.status}`}"></span>${esc(STATUS_LABEL[live.session.status])}</span></div>
-<section class="obs">${feedPanel(live.session, live.scores, live.session.format === 'bo3' ? 'Best of three' : 'Single match')}
-<div class="panel"><div class="panel-top"><span class="mono">Latest session</span><span class="mono">${esc(new Date(live.session.createdAt).toLocaleTimeString('en-GB'))}</span></div>
-<h2>${live.session.status === 'watching' ? 'Watching now' : live.session.status === 'inconclusive' ? 'Inconclusive' : 'Result detected'}</h2>
-<table class="kv"><tr><td>Event</td><td>${live.session.format === 'bo3' ? 'Best-of-three result' : 'Match result'}</td></tr>
-<tr><td>Source</td><td>${live.session.source.kind === 'simulated' ? 'Simulated feed' : 'Connected analyzer'}</td></tr>
-<tr><td>Status</td><td><span class="dot${live.session.status === 'watching' ? '' : ` d-${live.session.status}`}"></span>${esc(STATUS_LABEL[live.session.status])}</td></tr></table>
-<div class="actions"><a class="btn mono-btn" href="/s/${esc(live.session.id)}">Open session ${ARROW_UR}</a></div></div>
+  const watching = live && live.session.status === 'watching' ? live : null;
+  const preview = watching
+    ? `<div class="sec-head"><span class="mono">01 / Live observation</span><span class="watching"><span class="dot live"></span>Watching</span></div>
+<section class="obs">${feedPanel(watching.session, watching.scores, watching.session.format === 'bo3' ? 'Best of three' : 'Single match')}
+<div class="panel"><div class="panel-top"><span class="mono">Event detected</span><span class="mono">${esc(new Date(watching.session.createdAt).toLocaleTimeString('en-GB'))}</span></div>
+<h2>Watching now</h2>
+<table class="kv"><tr><td>Event</td><td>${watching.session.format === 'bo3' ? 'Best-of-three result' : 'Match result'}</td></tr>
+<tr><td>Source</td><td>${watching.session.source.kind === 'simulated' ? 'Simulated feed' : 'Connected analyzer'}</td></tr>
+<tr><td>Status</td><td><span class="dot"></span>Watching</td></tr></table>
+<div class="actions"><a class="btn mono-btn" href="/s/${esc(watching.session.id)}">Open session ${ARROW_UR}</a></div></div>
 ${rail(['A live', 'world', 'a shared', 'record'], ['Turn', 'observation', 'into', 'public records'])}</section>`
-    : '';
+    : `<div class="sec-head"><span class="mono">01 / Live observation</span><span class="watching"><span class="dot"></span>Watching</span></div>
+<section class="obs"><div class="feed photo"><img src="/img/platform.jpg" alt="Platform camera: a train arriving at platform 2 as passengers wait" width="863" height="304"><span class="mono">Example observation · Transit feeds are on the roadmap; match tracking works today</span></div>
+<div class="panel"><div class="panel-top"><span class="mono">Event detected</span><span class="mono">16:04:32</span></div>
+<h2>Arrival detected</h2>
+<table class="kv"><tr><td>Event</td><td>Train arrival</td></tr>
+<tr><td>Source</td><td>Connected camera</td></tr>
+<tr><td>Status</td><td><span class="dot"></span>Provisional</td></tr></table>
+<div class="actions"><a class="btn mono-btn" href="#observe">View evidence ${ARROW_UR}</a></div></div>
+${rail(['A live', 'world', 'a shared', 'record'], ['Turn', 'observation', 'into', 'public records'])}</section>`;
+
+  const shown = records.slice(0, 4);
+  // Real records first; examples fill the row, the gaming one making way first since real records are matches.
+  const fill = EXAMPLES.filter((e) => e.drop > shown.length);
+  const cards = [...shown.map(recordRow), ...fill.map(exampleRow)];
 
   return layout(
     'Witness',
@@ -283,11 +289,12 @@ ${rail(['A live', 'world', 'a shared', 'record'], ['Turn', 'observation', 'into'
  <input id="link" type="url" placeholder="Paste a stream link" aria-label="Stream link" autocomplete="off">
  <button class="go" aria-label="Start observing" ${devMode ? '' : 'disabled'}><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10h13M11 5l5 5-5 5"/></svg></button></div>
  <label class="q" for="look">What should Witness look for?</label>
- <input class="box" id="look" maxlength="200" placeholder="Describe what to watch for…" value="Track the score and report the winner.">
+ <input class="box" id="look" maxlength="200" placeholder="Describe what to watch for…">
  <div class="examples"><span class="mono">Examples</span>
-  <button type="button" class="chip" aria-pressed="true" data-ex="Track the score and report the winner.">A match winner</button>
-  <button type="button" class="chip" disabled>A live performance<small>Soon</small></button>
-  <button type="button" class="chip" disabled>A train arrival<small>Soon</small></button></div>
+  <button type="button" class="chip" data-kind="match" data-ex="Track the score and report the winner.">A match winner</button>
+  <button type="button" class="chip" data-kind="soon" data-ex="Log when the set starts, each song, and when it ends.">A live performance</button>
+  <button type="button" class="chip" data-kind="soon" data-ex="Record each train arriving at platform 2.">A train arrival</button></div>
+ <div id="more" hidden>
  <div class="setup">
   <div><span class="mono">Player 1</span><input class="box" id="p0" maxlength="32" value="Drew" aria-label="Player 1 alias"></div>
   <div><span class="mono">Player 2</span><input class="box" id="p1" maxlength="32" value="Alex" aria-label="Player 2 alias"></div>
@@ -295,26 +302,36 @@ ${rail(['A live', 'world', 'a shared', 'record'], ['Turn', 'observation', 'into'
    <label><input type="radio" name="fmt" value="bo3" checked>Best of 3</label><label><input type="radio" name="fmt" value="single">Single</label></div></div>
  </div>
  <label class="ack"><input type="checkbox" id="ack"><span>I understand the final result (these aliases, scores, winner and times) is published permanently and <b>cannot be deleted</b>. Use aliases, not real names or contact details.</span></label>
- <p class="err" id="err" role="alert">${devMode ? '' : 'This server requires an API key. Start sessions through the API.'}</p>
  <p class="note">Leave the link empty to watch the simulated demo feed. Direct stream links are coming with the first supported game.</p>
+ </div>
+ <p class="err" id="err" role="alert">${devMode ? '' : 'This server requires an API key. Start sessions through the API.'}</p>
 </form></div>
-<div class="art">${ORRERY}</div>
-${rail(['More', 'moments', 'a more', 'open', 'world'], ['Observe', 'record', 'verify', 'share'])}
+<div class="tiles">
+ <img src="/img/feed-transit.jpg" alt="Transit CCTV: a train arriving at a platform" width="353" height="195">
+ <img src="/img/feed-concert.jpg" alt="Concert livestream: a band on a lit stage" width="376" height="195">
+ <img src="/img/feed-gaming.jpg" alt="Gaming stream: first-person match with score HUD" width="353" height="232">
+ <img src="/img/feed-soccer.jpg" alt="High school soccer: match in progress, 1–0" width="376" height="232">
+ <span class="mono tiles-note">Example feeds</span>
+</div>
 </section>
 ${preview}
 <div class="sec-head"><span class="mono">Recent records</span><a class="mono" href="/records" style="text-decoration:none">View all &nbsp;→</a></div>
-${
-  records.length
-    ? `<div class="records">${records.slice(0, 3).map(recordRow).join('')}</div>`
-    : `<div class="records"><div class="rec"><div class="thumb empty">NONE YET</div><div><div class="t">No published records</div><div class="s">Observe a match and publish it to see it here.</div></div></div></div>`
-}
+<div class="records">${cards.join('')}</div>
 <script>
 const $ = (id) => document.getElementById(id);
-document.querySelectorAll('[data-ex]').forEach((b) => b.onclick = () => { $('look').value = b.dataset.ex; });
+let kind = null;
+document.querySelectorAll('[data-ex]').forEach((b) => b.onclick = () => {
+  document.querySelectorAll('[data-ex]').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+  $('look').value = b.dataset.ex; kind = b.dataset.kind;
+  $('err').textContent = kind === 'soon' ? 'Coming soon. Today Witness tracks match results; performances and transit are next.' : '';
+});
+$('look').addEventListener('input', () => { kind = null; document.querySelectorAll('[data-ex]').forEach((o) => o.setAttribute('aria-pressed', 'false')); $('err').textContent = ''; });
 $('f').addEventListener('submit', async (ev) => {
   ev.preventDefault();
   const err = $('err');
   if ($('link').value.trim()) { err.textContent = "Stream links aren't supported yet. Leave the link empty to watch the demo feed."; return; }
+  if (kind === 'soon') { err.textContent = 'Coming soon. Today Witness tracks match results; pick "A match winner".'; return; }
+  if ($('more').hidden) { $('more').hidden = false; if (!$('look').value) $('look').value = 'Track the score and report the winner.'; $('p0').focus(); err.textContent = ''; return; }
   if (!$('ack').checked) { err.textContent = 'Please confirm you understand the result is published permanently.'; return; }
   err.textContent = '';
   const res = await fetch('/v1/sessions', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({

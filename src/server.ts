@@ -1,6 +1,8 @@
 import { createServer } from 'node:http';
 import type { IncomingMessage, Server, ServerResponse } from 'node:http';
 import { timingSafeEqual } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { developersPage, homePage, livePage, notFoundPage, recordPage, recordsPage } from './pages.ts';
 import { sampleSeries, simulate } from './simulator.ts';
 import { Witness, WitnessError } from './service.ts';
@@ -18,6 +20,7 @@ type Handler = (req: IncomingMessage, res: ServerResponse, params: string[], bod
 type Route = { method: string; pattern: RegExp; auth: 'none' | 'api' | 'admin'; handler: Handler };
 
 const MAX_BODY = 1_000_000;
+const PUBLIC_DIR = join(import.meta.dirname, '..', 'public');
 
 function keyMatches(given: string | undefined, expected: string): boolean {
   if (!given) return false;
@@ -52,7 +55,7 @@ function sendHtml(res: ServerResponse, status: number, html: string): void {
   res.writeHead(status, {
     'content-type': 'text/html; charset=utf-8',
     'content-security-policy':
-      "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'",
+      "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'",
   });
   res.end(html);
 }
@@ -89,6 +92,21 @@ export function createWitnessServer(w: Witness, opts: ServerOptions = {}): Serve
         const state = latest ? w.liveState(latest.id) : null;
         const live = latest ? { session: latest, scores: state!.scores ?? state!.summary.matches.at(-1)?.scores ?? null } : null;
         sendHtml(res, 200, homePage({ devMode: !opts.apiKey, live, records: w.listRecords(3) }));
+      },
+    },
+    {
+      method: 'GET',
+      pattern: /^\/(img|fonts)\/([\w-]+)\.(jpg|woff2)$/,
+      auth: 'none',
+      handler: (_q, res, [dir, name, ext]) => {
+        let data: Buffer;
+        try {
+          data = readFileSync(join(PUBLIC_DIR, dir, `${name}.${ext}`));
+        } catch {
+          throw new WitnessError(404, 'Not found.');
+        }
+        res.writeHead(200, { 'content-type': ext === 'jpg' ? 'image/jpeg' : 'font/woff2', 'cache-control': 'public, max-age=604800' });
+        res.end(data);
       },
     },
     { method: 'GET', pattern: /^\/records$/, auth: 'none', handler: (_q, res) => sendHtml(res, 200, recordsPage(w.listRecords(50))) },
