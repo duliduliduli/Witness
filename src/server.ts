@@ -1,7 +1,7 @@
 import { createServer } from 'node:http';
 import type { IncomingMessage, Server, ServerResponse } from 'node:http';
 import { timingSafeEqual } from 'node:crypto';
-import { homePage, livePage, notFoundPage, recordPage } from './pages.ts';
+import { developersPage, homePage, livePage, notFoundPage, recordPage, recordsPage } from './pages.ts';
 import { sampleSeries, simulate } from './simulator.ts';
 import { Witness, WitnessError } from './service.ts';
 
@@ -51,7 +51,8 @@ function sendJson(res: ServerResponse, status: number, data: unknown): void {
 function sendHtml(res: ServerResponse, status: number, html: string): void {
   res.writeHead(status, {
     'content-type': 'text/html; charset=utf-8',
-    'content-security-policy': "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'",
+    'content-security-policy':
+      "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'",
   });
   res.end(html);
 }
@@ -79,7 +80,19 @@ export function createWitnessServer(w: Witness, opts: ServerOptions = {}): Serve
 
   const routes: Route[] = [
     // pages
-    { method: 'GET', pattern: /^\/$/, auth: 'none', handler: (_q, res) => sendHtml(res, 200, homePage(!opts.apiKey)) },
+    {
+      method: 'GET',
+      pattern: /^\/$/,
+      auth: 'none',
+      handler: (_q, res) => {
+        const latest = w.recentSessions(1)[0];
+        const state = latest ? w.liveState(latest.id) : null;
+        const live = latest ? { session: latest, scores: state!.scores ?? state!.summary.matches.at(-1)?.scores ?? null } : null;
+        sendHtml(res, 200, homePage({ devMode: !opts.apiKey, live, records: w.listRecords(3) }));
+      },
+    },
+    { method: 'GET', pattern: /^\/records$/, auth: 'none', handler: (_q, res) => sendHtml(res, 200, recordsPage(w.listRecords(50))) },
+    { method: 'GET', pattern: /^\/developers$/, auth: 'none', handler: (_q, res) => sendHtml(res, 200, developersPage()) },
     {
       method: 'GET',
       pattern: /^\/s\/([\w-]+)$/,

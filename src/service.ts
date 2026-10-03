@@ -36,6 +36,8 @@ export type Session = {
   format: MatchFormat;
   participants: [string, string];
   source: { kind: 'push' | 'simulated' };
+  /** What the user asked Witness to watch for. Private context, never published. */
+  instructions: string;
   status: SessionStatus;
   createdAt: number;
   autoPublish: boolean;
@@ -57,6 +59,7 @@ export type CreateSessionInput = {
   acknowledgePublic?: unknown;
   source?: unknown;
   autoPublish?: unknown;
+  instructions?: unknown;
 };
 
 export type WitnessOptions = {
@@ -135,6 +138,9 @@ export class Witness {
       throw new WitnessError(400, 'source.kind must be "push" or "simulated".');
     }
 
+    const instructions = typeof input.instructions === 'string' ? input.instructions.trim() : '';
+    if (instructions.length > 200) throw new WitnessError(400, 'Keep instructions under 200 characters.');
+
     const sessionId = id('ses');
     const s: SessionInternal = {
       id: sessionId,
@@ -142,6 +148,7 @@ export class Witness {
       format,
       participants,
       source: { kind: sourceKind },
+      instructions,
       status: 'watching',
       createdAt: Date.now(),
       autoPublish: input.autoPublish === true,
@@ -264,6 +271,22 @@ export class Witness {
     this.records.set(recordId, rec);
     s.recordId = recordId;
     return rec;
+  }
+
+  /** Latest published version of each record, newest first. */
+  listRecords(limit = 20): WitnessRecord[] {
+    return [...this.records.values()]
+      .filter((r) => r.ledgerRef && !r.supersededBy)
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, limit)
+      .map((r) => structuredClone(r));
+  }
+
+  recentSessions(limit = 5): Session[] {
+    return [...this.sessions.values()]
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, limit)
+      .map((s) => this.publicSession(s));
   }
 
   getRecord(recordId: string): WitnessRecord {

@@ -43,7 +43,7 @@ video ──► analyzer ──► FrameReading[] ──► MatchTracker ──�
 | `src/service.ts` | Sessions, event log, records, publish (with retry), participant confirmation, disputes, append-only corrections, verification, signed webhooks. |
 | `src/crypto.ts` | Canonical JSON, Ed25519 issuer signatures, salted evidence fingerprints. The salt stops a guessable score line from being recovered from its public hash. |
 | `src/ledger.ts` | `Publisher` interface plus `LocalLedger`, a hash-chained append-only log that stands in for a blockchain. |
-| `src/server.ts`, `src/pages.ts` | HTTP API, live SSE feed, home / live session / public record pages. |
+| `src/server.ts`, `src/pages.ts` | HTTP API, live SSE feed, and the pages: Observe (home), live session, public record, Records, Developers. Fonts: Inter Tight + JetBrains Mono from Google Fonts. |
 | `src/simulator.ts` | Stand-in analyzer: realistic readings with dropped and misread frames. |
 
 **Record lifecycle:** `provisional` → `recorded` (published) → `disputed` → `corrected` (superseded by a new ledger entry; the original stays). `inconclusive` sessions produce no record. Evidence quality (`high` / `reduced` / `insufficient`) is tracked separately from status, because "recorded" means *published*, not *true*.
